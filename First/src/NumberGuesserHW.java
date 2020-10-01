@@ -168,6 +168,29 @@ public class NumberGuesserHW {
 			}
 			return number > 1;
 		}
+		private void levelSkip()
+		{
+			boolean tf = true;
+			while(tf)
+			{
+				
+			Scanner input = new Scanner(System.in);
+			System.out.println("Want to skip a level? (Yes/No): ");
+			String ans = input.nextLine();
+			if (ans.equalsIgnoreCase("yes"))
+				{
+					System.out.println("What level?: ");
+					level = input.nextInt();	
+					tf = false;
+				}
+			else
+				{
+					System.out.println("Ok");
+					tf = false;
+				}
+			}
+				
+		}
 
 	void run() {
 		try (Scanner input = new Scanner(System.in);) {
@@ -183,6 +206,7 @@ public class NumberGuesserHW {
 			if (loadGuess()) {
 				System.out.println("Successfully loaded number let's continue then");
 			}
+			levelSkip();
 			number = getNumber(level);
 			isRunning = true;
 			while (input.hasNext()) {

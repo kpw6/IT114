@@ -201,7 +201,7 @@ public class ClientUI extends JFrame implements Event {
 	FontMetrics metrics = self.getGraphics().getFontMetrics(self.getFont());
 	int hgt = metrics.getHeight();
 	int adv = metrics.stringWidth(str);
-	final int PIXEL_PADDING = 6;
+	final int PIXEL_PADDING = 30;
 	Dimension size = new Dimension(adv, hgt + PIXEL_PADDING);
 	final float PADDING_PERCENT = 1.1f;
 	// calculate modifier to line wrapping so we can display the wrapped message

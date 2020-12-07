@@ -9,7 +9,7 @@ public interface Event {
 
     void onChangeRoom();
     
-    void onChoiceMade(String Choice1, String Choice2);
+    void onChoiceMade(int Choice);
     
     void onSyncPlayers(String clientName);
     
@@ -18,6 +18,8 @@ public interface Event {
     void onSetCountdown(String message, int duration);
     
     void onToggleLock(boolean isLock);
+    
+    void onSetResults(String decision);
 
     
 }

@@ -24,6 +24,8 @@ public class SocketClient {
     private static ObjectOutputStream out;
     private final static Logger log = Logger.getLogger(SocketClient.class.getName());
     private static Event event;
+    public static int decision;
+    public static String results;
 
     private static Payload buildMessage(String message) {
 	Payload payload = new Payload();
@@ -43,6 +45,12 @@ public class SocketClient {
 	}
 	payload.setClientName(name);
 	return payload;
+    }
+    private static Payload buildChoice(int choice) {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.CHOICE_GIVEN);
+    	payload.setChoice(choice);
+    	return payload;
     }
 
     private static void sendPayload(Payload p) {
@@ -120,6 +128,11 @@ public class SocketClient {
 	case SET_COUNTDOWN:
 	    event.onSetCountdown(p.getMessage(), p.getNumber());
 	    break;
+	case GAME_RESULT: 
+		event.onSetResults(p.getDecision());
+		results = p.getDecision();
+		System.out.println("Decisions = " + results);
+		break;
 	default:
 	    log.log(Level.WARNING, "unhandled payload on client" + p);
 	    break;
@@ -162,6 +175,9 @@ public class SocketClient {
 
     public static void sendMessage(String message) {
 	sendPayload(buildMessage(message));
+    }
+    public static void sendChoice(int choice) {
+    sendPayload(buildChoice(choice));
     }
 
     public static boolean start() throws IOException {
@@ -221,4 +237,12 @@ public class SocketClient {
 	    }
 	}
     }
+    public static int getDecisions() {
+    	return decision;
+    }
+    public static String getResults() {
+    	return results;
+    }
+
+
 }

@@ -325,7 +325,7 @@ public class ClientUI extends JFrame implements Event {
     }
 
 	@Override
-	public void onChoiceMade(String Choice1, String Choice2) {
+	public void onChoiceMade(int Choice1) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -350,6 +350,12 @@ public class ClientUI extends JFrame implements Event {
 
 	@Override
 	public void onToggleLock(boolean isLock) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSetResults(String decision) {
 		// TODO Auto-generated method stub
 		
 	}

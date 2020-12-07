@@ -69,6 +69,7 @@ public abstract class BaseRPSDesign extends JPanel {
     	    gameLoop.start();
     	}
         }
+    
     public abstract void awake();
 
     // called when thread is started

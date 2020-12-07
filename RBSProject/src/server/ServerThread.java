@@ -17,6 +17,7 @@ public class ServerThread extends Thread {
     private Room currentRoom;// what room we are in, should be lobby by default
     private String clientName;
     private final static Logger log = Logger.getLogger(ServerThread.class.getName());
+    private int decision;
 
     public String getClientName() {
 	return clientName;
@@ -141,6 +142,11 @@ public class ServerThread extends Thread {
 	    // we currently don't need to do anything since the UI/Client won't be sending
 	    // this
 	    break;
+	case CHOICE_GIVEN:
+		int choice = p.getChoice();
+		decision = LiveGame.gameDecision(choice, 1);
+		sendDecision(LiveGame.processResults(decision));
+		break;
 	default:
 	    log.log(Level.INFO, "Unhandled payload on server: " + p);
 	    break;
@@ -222,5 +228,14 @@ public class ServerThread extends Thread {
     	payload.setMessage(message);
     	payload.setNumber(duration);
     	return sendPayload(payload);
+    }
+    protected boolean sendDecision(String decision) {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.GAME_RESULT);
+    	payload.setDecision(decision);
+    	return sendPayload(payload);
+    }
+    int getDecision() {
+    	return decision;
     }
 }

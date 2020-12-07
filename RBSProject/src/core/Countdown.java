@@ -72,6 +72,10 @@ public class Countdown {
 	callback = null;
 	timer.cancel();
     }
+    
+    public int getTime() {
+    	return time;
+    }
 
     public String getTimeMessage() {
 	if (message == null) {

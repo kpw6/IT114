@@ -17,7 +17,6 @@ import javax.swing.JTextField;
 
 import core.BaseRPSDesign;
 import core.Countdown;
-
 import client.User;
 
 public class RPSDesign extends BaseRPSDesign implements Event {
@@ -26,16 +25,15 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	RPSDesign self;
 	CardLayout card;
 	JFrame frame;
-	Countdown timer;
 	User user;
+	Countdown timer;
+	String decision;
 	
 	public RPSDesign() {
 		self = this;
 		card = new CardLayout();
 		setLayout(card);
 		gameStart();
-		gameWaitScreen();
-		gamePlayScreen();
 	}
 	
 	public void gameStart() {
@@ -46,6 +44,8 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
+		    	SocketClient.sendMessage("has joined a game");
+		    	gamePlayScreen();
 		    	self.next();
 
 			}
@@ -76,23 +76,26 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		
 		panel.add(waiting);
 		this.add(panel);
-		
+			
+
 		
 	}
 	
 	public void gamePlayScreen()
 	{
-		
+		timer = new Countdown("Time: ", 15);
 		JPanel panel = new JPanel();		
 		JButton rockButton = new JButton("Rock");
 		JButton paperButton = new JButton("Paper");
 		JButton scizzorsButton = new JButton("Scizzors");
-		JButton skipButton = new JButton("skip");
+		JButton skipButton = new JButton("Skip");
+		JButton menuButton = new JButton("Return to Menu");
 		JLabel scizzors = new JLabel("You chose scizzors");
 		JLabel rock = new JLabel("You chose rock");
 		JLabel paper = new JLabel("You chose paper");
+		JLabel timeOut = new JLabel("Time ran out");
 
-		
+
 		panel.add(rockButton);
 		panel.add(paperButton);
 		panel.add(scizzorsButton);
@@ -100,9 +103,13 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		panel.add(scizzors);
 		panel.add(paper);
 		panel.add(rock);
+		panel.add(timeOut);
 		scizzors.setVisible(false);
 		rock.setVisible(false);
 		paper.setVisible(false);
+		timeOut.setVisible(false);
+		
+		
 		
 		this.add(panel);
 		//Scizzors button press
@@ -110,11 +117,10 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	panel.remove(scizzorsButton);
-		    	panel.remove(rockButton);
-		    	panel.remove(paperButton);
-		    	panel.remove(skipButton);
-		    	scizzors.setVisible(true);
+		    	timer.cancel();
+		    	self.onChoiceMade(2);
+		    	resultScreen();
+		    	self.next();
 
 			}
 
@@ -124,11 +130,11 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	panel.remove(scizzorsButton);
-		    	panel.remove(rockButton);
-		    	panel.remove(paperButton);
-		    	panel.remove(skipButton);
-		    	rock.setVisible(true);
+		    	timer.cancel();
+		    	onChoiceMade(0);
+		    	resultScreen();
+		    	self.next();
+
 
 			}
 
@@ -138,11 +144,10 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	panel.remove(scizzorsButton);
-		    	panel.remove(rockButton);
-		    	panel.remove(paperButton);
-		    	panel.remove(skipButton);
-		    	paper.setVisible(true);
+		    	timer.cancel();
+		    	onChoiceMade(1);
+		    	resultScreen();
+		    	self.next();
 
 			}
 
@@ -153,23 +158,45 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
 		    	self.gotoMenu();
+		    	timer.cancel();
+
+			}
+
+		});
+		menuButton.addActionListener(new ActionListener() {
+
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	self.gotoMenu();
 
 			}
 
 		});
 	}
-	
-	public void attachListeners() {
-		self.gameStart();
-		Thread t = new Thread() {
-			@Override
-			public void run()
-			{
-				
+	public void resultScreen() {
+		SocketClient.sendMessage(decision);
+		JPanel panel = new JPanel();
+		JLabel results = new JLabel(decision);
+		JButton button = new JButton("Menu");
+		button.addActionListener(new ActionListener() {
+
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	self.gotoMenu();
+
 			}
-		};
-		t.start();
+
+		});
+		panel.add(button);
+		panel.add(results);
+		self.add(panel);
+		
 	}
+	public void spectateScreen() {
+		
+	}
+	
+	
 	
 	 @Override
 	    public void quit() {
@@ -189,13 +216,6 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	
     public void onSetCountdown(String message, int duration) {
 	// TODO Auto-generated method stub
-	if (timer != null) {
-	    timer.cancel();
-	}
-	timer = new Countdown(message, duration, (x) -> {
-	    System.out.println("expired");
-	    System.out.println(x);
-	});
     }
 	@Override
 	public void onClientConnect(String clientName, String message) {
@@ -218,8 +238,8 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		
 	}
 	@Override
-	public void onChoiceMade(String Choice1, String Choice2) {
-		// TODO Auto-generated method stub
+	public void onChoiceMade(int Choice) {
+		SocketClient.sendChoice(Choice);
 		
 	}
 	@Override
@@ -262,6 +282,24 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	public void onToggleLock(boolean isLock) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void onSetResults(String decision) {
+		this.decision = decision;
+	}
+
+
+	@Override
+	public void attachListeners() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String processResults(int decision) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

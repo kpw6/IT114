@@ -54,15 +54,24 @@ public class Payload implements Serializable {
 		getMessage());
     }
     
-    private String choice;
+    private int choice;
     
-    public void setChoice(String c)
+    public void setChoice(int c)
     {
     	this.choice = c;
     }
     
-    public String getChoice()
+    public int getChoice()
     {
     	return this.choice;
+    }
+    
+    private String decision;
+    
+    public void setDecision(String decision2) {
+    	this.decision = decision2;
+    }
+    public String getDecision() {
+    	return decision;
     }
 }

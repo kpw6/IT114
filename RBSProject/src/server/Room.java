@@ -1,14 +1,16 @@
 package server;
 
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import core.BaseRPSDesign;
 import core.Countdown;
 
-public class Room implements AutoCloseable {
+public class Room extends BaseRPSDesign implements AutoCloseable {
     private static SocketServer server;// used to refer to accessible server functions
     private String name;
     private final static Logger log = Logger.getLogger(Room.class.getName());
@@ -17,6 +19,7 @@ public class Room implements AutoCloseable {
     private final static String COMMAND_TRIGGER = "/";
     private final static String CREATE_ROOM = "createroom";
     private final static String JOIN_ROOM = "joinroom";
+    
 
     public Room(String name) {
 	this.name = name;
@@ -89,6 +92,10 @@ public class Room implements AutoCloseable {
 
     protected void joinLobby(ServerThread client) {
 	server.joinLobby(client);
+    }
+    
+    public void joinGameRoom(ServerThread client) {
+     server.joinRoom("game", client);
     }
 
     /***
@@ -170,6 +177,18 @@ public class Room implements AutoCloseable {
 	    }
 	}
     }
+	public void sendDecision(ServerThread sender, int i) {
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+		    ServerThread c = iter.next();
+		    boolean messageSent = c.sendDecision(sender.getDecision());
+		    if (!messageSent) {
+			iter.remove();
+			log.log(Level.INFO, "Removed client " + c.getId());
+		    }
+		}
+		
+	}
 
     /***
      * Will attempt to migrate any remaining clients to the Lobby room. Will then
@@ -193,8 +212,54 @@ public class Room implements AutoCloseable {
 	name = null;
 	// should be eligible for garbage collection now
     }
+	private void syncClient(ClientPlayer cp) {
+		if (cp.client.getClientName() != null) {
+			cp.client.sendClearList();
+			sendConnectionStatus(cp.client, true, "joined the room " + getName());
+			// calculate random start position
+			// get the list of connected clients (for ui panel)
+			updateClientList(cp.client);
+			// get dir/pos of existing players
+		}
+	}
+
+	@Override
+	public void awake() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void update() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void lateUpdate() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void quit() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void attachListeners() {
+		// TODO Auto-generated method stub
+		
+	}
     
-    /*void nextRound(String message, int duration) {
+    void nextRound(String message, int duration) {
     	int numReady = totalReady();
     	if (numReady > 0) {
     	    Iterator<ClientPlayer> iter = clients.iterator();
@@ -215,18 +280,17 @@ public class Room implements AutoCloseable {
     	}
         }
 
-    
-    protected void sendCountdown(String message, int duration) {
-	Iterator<ClientPlayer> iter = clients.iterator();
-	while (iter.hasNext()) {
-	    ClientPlayer client = iter.next();
-	    boolean messageSent = client.client.sendCountdown(message, duration);
-	    if (!messageSent) {
-		iter.remove();
-	    }
-	    
-	} 
+    private void availablePlayerCheck() {
+    	
     }
-    */
+    protected void sendCountdown(String message, int duration) {
+	    
+    }
+
+	@Override
+	public String processResults(int decision) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

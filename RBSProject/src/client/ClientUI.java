@@ -5,6 +5,7 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -28,21 +29,27 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 
+import client.RPSDesign;
+
 public class ClientUI extends JFrame implements Event {
     /**
      * 
      */
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
     CardLayout card;
     ClientUI self;
     JPanel textArea;
     JPanel userPanel;
     List<User> users = new ArrayList<User>();
     private final static Logger log = Logger.getLogger(ClientUI.class.getName());
-    Dimension windowSize = new Dimension(400, 400);
+    Dimension windowSize = Toolkit.getDefaultToolkit().getScreenSize();
+    
+    RPSDesign design;
 
     public ClientUI(String title) {
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	windowSize.width *= .8;
+	windowSize.height *= .8;
 	setPreferredSize(windowSize);
 	setLocationRelativeTo(null);
 	self = this;
@@ -53,6 +60,7 @@ public class ClientUI extends JFrame implements Event {
 	createUserInputScreen();
 	createPanelRoom();
 	createPanelUserList();
+	createRPSDesign();
 	showUI();
     }
 
@@ -170,17 +178,23 @@ public class ClientUI extends JFrame implements Event {
 
 	textArea.getParent().getParent().getParent().add(scroll, BorderLayout.EAST);
     }
-
-    void addClient(String name) {
-	User u = new User(name);
-	Dimension p = new Dimension(userPanel.getSize().width, 30);
-	u.setPreferredSize(p);
-	u.setMinimumSize(p);
-	u.setMaximumSize(p);
-	userPanel.add(u);
-	users.add(u);
-	pack();
+    
+    void createRPSDesign() {
+    design = new RPSDesign();
+    design.setPreferredSize(new Dimension((int) (windowSize.width * .6), windowSize.height));
+    textArea.getParent().getParent().getParent().add(design, BorderLayout.WEST);
     }
+
+    void addClient(String name, int score) {
+    	User u = new User(name, score);
+    	Dimension p = new Dimension(userPanel.getSize().width, 30);
+    	u.setPreferredSize(p);
+    	u.setMinimumSize(p);
+    	u.setMaximumSize(p);
+    	userPanel.add(u);
+    	users.add(u);
+    	pack();
+        }
 
     void removeClient(User client) {
 	userPanel.remove(client);
@@ -201,7 +215,7 @@ public class ClientUI extends JFrame implements Event {
 	FontMetrics metrics = self.getGraphics().getFontMetrics(self.getFont());
 	int hgt = metrics.getHeight();
 	int adv = metrics.stringWidth(str);
-	final int PIXEL_PADDING = 30;
+	final int PIXEL_PADDING = 5;
 	Dimension size = new Dimension(adv, hgt + PIXEL_PADDING);
 	final float PADDING_PERCENT = 1.1f;
 	// calculate modifier to line wrapping so we can display the wrapped message
@@ -254,7 +268,7 @@ public class ClientUI extends JFrame implements Event {
     @Override
     public void onClientConnect(String clientName, String message) {
 	log.log(Level.INFO, String.format("%s: %s", clientName, message));
-	addClient(clientName);
+	addClient(clientName, 0);
 	if (message != null && !message.isBlank()) {
 	    self.addMessage(String.format("%s: %s", clientName, message));
 	}
@@ -291,6 +305,17 @@ public class ClientUI extends JFrame implements Event {
 	    iter.remove();
 	}
     }
+    public void resortUserList(List<Player> players) {
+    	Iterator<User> iter = users.iterator();
+    	while (iter.hasNext()) {
+    	    User u = iter.next();
+    	    if (u != null) {
+    		removeClient(u);
+    		iter.remove();
+    	    }
+    	}
+    }
+
 
     public static void main(String[] args) {
 	ClientUI ui = new ClientUI("My UI");
@@ -298,4 +323,34 @@ public class ClientUI extends JFrame implements Event {
 	    log.log(Level.FINE, "Started");
 	}
     }
+
+	@Override
+	public void onChoiceMade(String Choice1, String Choice2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSyncPlayers(String clientName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPlayerConnect(String clientName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSetCountdown(String message, int t) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onToggleLock(boolean isLock) {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -53,4 +53,16 @@ public class Payload implements Serializable {
 	return String.format("Type[%s], Number[%s], Message[%s]", getPayloadType().toString(), getNumber(),
 		getMessage());
     }
+    
+    private String choice;
+    
+    public void setChoice(String c)
+    {
+    	this.choice = c;
+    }
+    
+    public String getChoice()
+    {
+    	return this.choice;
+    }
 }

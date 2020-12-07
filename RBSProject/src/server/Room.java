@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import core.Countdown;
+
 public class Room implements AutoCloseable {
     private static SocketServer server;// used to refer to accessible server functions
     private String name;
@@ -191,5 +193,40 @@ public class Room implements AutoCloseable {
 	name = null;
 	// should be eligible for garbage collection now
     }
+    
+    /*void nextRound(String message, int duration) {
+    	int numReady = totalReady();
+    	if (numReady > 0) {
+    	    Iterator<ClientPlayer> iter = clients.iterator();
+    	    while (iter.hasNext()) {
+    		ClientPlayer cp = iter.next();
+    		if (cp != null) {
+    		}
+    	    }
+    	    // TODO countdown to trigger ticket collection
+    	    // set it server side
+    	    new Countdown(message, duration, (x) -> {
+    	    });
+    	    // set it client side (for visual countdown)
+    	    sendCountdown(message, duration);
+    	}
+    	else {
+    	    sendMessage(null, "Ending game due to no more 'ready' players");
+    	}
+        }
+
+    
+    protected void sendCountdown(String message, int duration) {
+	Iterator<ClientPlayer> iter = clients.iterator();
+	while (iter.hasNext()) {
+	    ClientPlayer client = iter.next();
+	    boolean messageSent = client.client.sendCountdown(message, duration);
+	    if (!messageSent) {
+		iter.remove();
+	    }
+	    
+	} 
+    }
+    */
 
 }

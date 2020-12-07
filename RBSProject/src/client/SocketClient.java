@@ -5,11 +5,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import server.Payload;
 import server.PayloadType;
+
+import client.Event;
+import client.RPSDesign;
 
 //part 7
 public class SocketClient {
@@ -112,6 +116,9 @@ public class SocketClient {
 	    if (event != null) {
 		event.onChangeRoom();
 	    }
+	    break;
+	case SET_COUNTDOWN:
+	    event.onSetCountdown(p.getMessage(), p.getNumber());
 	    break;
 	default:
 	    log.log(Level.WARNING, "unhandled payload on client" + p);

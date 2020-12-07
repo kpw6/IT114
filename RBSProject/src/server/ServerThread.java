@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+
 public class ServerThread extends Thread {
     private Socket client;
     private ObjectInputStream in;// from client
@@ -212,5 +214,13 @@ public class ServerThread extends Thread {
 		log.log(Level.INFO, "Client already closed");
 	    }
 	}
+    }
+
+    protected boolean sendCountdown(String message, int duration) {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.SET_COUNTDOWN);
+    	payload.setMessage(message);
+    	payload.setNumber(duration);
+    	return sendPayload(payload);
     }
 }

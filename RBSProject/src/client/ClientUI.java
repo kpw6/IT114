@@ -348,11 +348,6 @@ public class ClientUI extends JFrame implements Event {
 		
 	}
 
-	@Override
-	public void onToggleLock(boolean isLock) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void onSetResults(String decision) {

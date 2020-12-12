@@ -17,9 +17,9 @@ public interface Event {
     
     void onSetCountdown(String message, int duration);
     
-    void onToggleLock(boolean isLock);
-    
     void onSetResults(String decision);
+    
+    void onReady(String clientName, boolean isReady);
 
     
 }

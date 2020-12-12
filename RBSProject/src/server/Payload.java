@@ -74,4 +74,13 @@ public class Payload implements Serializable {
     public String getDecision() {
     	return decision;
     }
+    
+    boolean isReady = false
+    		;
+    public void setReady(boolean isReady) {
+    	this.isReady = isReady;
+    }
+    public boolean getReady() {
+    	return isReady;
+    }
 }

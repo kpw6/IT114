@@ -177,18 +177,6 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
 	    }
 	}
     }
-	public void sendDecision(ServerThread sender, int i) {
-		Iterator<ServerThread> iter = clients.iterator();
-		while (iter.hasNext()) {
-		    ServerThread c = iter.next();
-		    boolean messageSent = c.sendDecision(sender.getDecision());
-		    if (!messageSent) {
-			iter.remove();
-			log.log(Level.INFO, "Removed client " + c.getId());
-		    }
-		}
-		
-	}
 
     /***
      * Will attempt to migrate any remaining clients to the Lobby room. Will then
@@ -212,16 +200,6 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
 	name = null;
 	// should be eligible for garbage collection now
     }
-	private void syncClient(ClientPlayer cp) {
-		if (cp.client.getClientName() != null) {
-			cp.client.sendClearList();
-			sendConnectionStatus(cp.client, true, "joined the room " + getName());
-			// calculate random start position
-			// get the list of connected clients (for ui panel)
-			updateClientList(cp.client);
-			// get dir/pos of existing players
-		}
-	}
 
 	@Override
 	public void awake() {
@@ -259,27 +237,6 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
 		
 	}
     
-    void nextRound(String message, int duration) {
-    	int numReady = totalReady();
-    	if (numReady > 0) {
-    	    Iterator<ClientPlayer> iter = clients.iterator();
-    	    while (iter.hasNext()) {
-    		ClientPlayer cp = iter.next();
-    		if (cp != null) {
-    		}
-    	    }
-    	    // TODO countdown to trigger ticket collection
-    	    // set it server side
-    	    new Countdown(message, duration, (x) -> {
-    	    });
-    	    // set it client side (for visual countdown)
-    	    sendCountdown(message, duration);
-    	}
-    	else {
-    	    sendMessage(null, "Ending game due to no more 'ready' players");
-    	}
-        }
-
     private void availablePlayerCheck() {
     	
     }
@@ -287,10 +244,5 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
 	    
     }
 
-	@Override
-	public String processResults(int decision) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 }

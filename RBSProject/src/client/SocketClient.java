@@ -52,6 +52,12 @@ public class SocketClient {
     	payload.setChoice(choice);
     	return payload;
     }
+    private static Payload buildReady(boolean ready) {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.READY);
+    	payload.setReady(ready);
+    	return payload;
+    }
 
     private static void sendPayload(Payload p) {
 	try {
@@ -133,6 +139,9 @@ public class SocketClient {
 		results = p.getDecision();
 		System.out.println("Decisions = " + results);
 		break;
+	case READY:
+		event.onReady(p.getClientName(), p.getReady());
+		break;
 	default:
 	    log.log(Level.WARNING, "unhandled payload on client" + p);
 	    break;
@@ -178,6 +187,9 @@ public class SocketClient {
     }
     public static void sendChoice(int choice) {
     sendPayload(buildChoice(choice));
+    }
+    public static void sendReady(boolean ready) {
+    sendPayload(buildReady(ready));
     }
 
     public static boolean start() throws IOException {

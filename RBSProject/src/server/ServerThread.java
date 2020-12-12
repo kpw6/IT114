@@ -143,9 +143,12 @@ public class ServerThread extends Thread {
 	    // this
 	    break;
 	case CHOICE_GIVEN:
-		int choice = p.getChoice();
-		decision = LiveGame.gameDecision(choice, 1);
+		decision = LiveGame.gameDecision(p.getChoice(), 1);
 		sendDecision(LiveGame.processResults(decision));
+		currentRoom.sendMessage(this, LiveGame.processResults(decision)); 
+		break;
+	case READY:
+		sendReady(true);
 		break;
 	default:
 	    log.log(Level.INFO, "Unhandled payload on server: " + p);
@@ -238,4 +241,11 @@ public class ServerThread extends Thread {
     int getDecision() {
     	return decision;
     }
+    protected boolean sendReady(boolean ready) {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.READY);
+    	payload.setReady(ready);
+    	return sendPayload(payload);
+    }
+    
 }

@@ -3,13 +3,16 @@ package client;
 
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -22,12 +25,12 @@ import client.User;
 public class RPSDesign extends BaseRPSDesign implements Event {
 	
 	private static final long serialVersionUID = -1121202275148798015L;
+	private final static Logger log = Logger.getLogger(RPSDesign.class.getName());
 	RPSDesign self;
 	CardLayout card;
 	JFrame frame;
 	User user;
-	Countdown timer;
-	String decision;
+	JPanel game = new JPanel();
 	
 	public RPSDesign() {
 		self = this;
@@ -45,7 +48,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
 		    	SocketClient.sendMessage("has joined a game");
-		    	gamePlayScreen();
+				gamePlayScreen();
 		    	self.next();
 
 			}
@@ -71,6 +74,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	
 	public void gameWaitScreen()
 	{
+		SocketClient.sendReady(true);
 		JPanel panel = new JPanel();
 		JLabel waiting = new JLabel("Waiting for other players to connect");
 		
@@ -81,10 +85,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		
 	}
 	
-	public void gamePlayScreen()
-	{
-		timer = new Countdown("Time: ", 15);
-		JPanel panel = new JPanel();		
+	public void gamePlayScreen() {	
 		JButton rockButton = new JButton("Rock");
 		JButton paperButton = new JButton("Paper");
 		JButton scizzorsButton = new JButton("Scizzors");
@@ -95,31 +96,26 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		JLabel paper = new JLabel("You chose paper");
 		JLabel timeOut = new JLabel("Time ran out");
 
-
-		panel.add(rockButton);
-		panel.add(paperButton);
-		panel.add(scizzorsButton);
-		panel.add(skipButton);
-		panel.add(scizzors);
-		panel.add(paper);
-		panel.add(rock);
-		panel.add(timeOut);
+		game.add(rockButton);
+		game.add(paperButton);
+		game.add(scizzorsButton);
+		game.add(skipButton);
+		game.add(scizzors);
+		game.add(paper);
+		game.add(rock);
+		game.add(timeOut);
 		scizzors.setVisible(false);
 		rock.setVisible(false);
 		paper.setVisible(false);
 		timeOut.setVisible(false);
 		
-		
-		
-		this.add(panel);
+		this.add(game);
 		//Scizzors button press
 		scizzorsButton.addActionListener(new ActionListener() {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	timer.cancel();
 		    	self.onChoiceMade(2);
-		    	resultScreen();
 		    	self.next();
 
 			}
@@ -130,9 +126,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	timer.cancel();
 		    	onChoiceMade(0);
-		    	resultScreen();
 		    	self.next();
 
 
@@ -144,10 +138,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	timer.cancel();
 		    	onChoiceMade(1);
-		    	resultScreen();
-		    	self.next();
 
 			}
 
@@ -158,7 +149,6 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
 		    	self.gotoMenu();
-		    	timer.cancel();
 
 			}
 
@@ -171,26 +161,11 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 			}
 
+		}); 
+		Countdown timer = new Countdown("t", 15, (x) -> {
+			self.gotoMenu();
+			this.remove(game);
 		});
-	}
-	public void resultScreen() {
-		SocketClient.sendMessage(decision);
-		JPanel panel = new JPanel();
-		JLabel results = new JLabel(decision);
-		JButton button = new JButton("Menu");
-		button.addActionListener(new ActionListener() {
-
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-		    	self.gotoMenu();
-
-			}
-
-		});
-		panel.add(button);
-		panel.add(results);
-		self.add(panel);
-		
 	}
 	public void spectateScreen() {
 		
@@ -211,6 +186,10 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	}
 	void gotoMenu() {
 		card.first(self);
+	}
+	public void addResults(String results) {
+		SocketClient.sendMessage(results);
+
 	}
 	
 	
@@ -279,16 +258,10 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	}
 
 	@Override
-	public void onToggleLock(boolean isLock) {
-		// TODO Auto-generated method stub
-		
+	public void onSetResults(String results) {
+		log.log(Level.INFO, String.format("%s: %s", results));
+		SocketClient.sendMessage(results);
 	}
-
-	@Override
-	public void onSetResults(String decision) {
-		this.decision = decision;
-	}
-
 
 	@Override
 	public void attachListeners() {
@@ -296,11 +269,6 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		
 	}
 
-	@Override
-	public String processResults(int decision) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 
 }

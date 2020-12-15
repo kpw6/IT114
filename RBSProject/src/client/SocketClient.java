@@ -5,7 +5,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,19 +15,20 @@ import server.Payload;
 import server.PayloadType;
 
 import client.Event;
-import client.RPSDesign;
 
 //part 7
-public class SocketClient {
+public enum SocketClient {
+	INSTANCE;
+	
     private static Socket server;
     private static Thread fromServerThread;
     private static Thread clientThread;
     private static String clientName;
     private static ObjectOutputStream out;
     private final static Logger log = Logger.getLogger(SocketClient.class.getName());
-    private static Event event;
     public static int decision;
     public static String results;
+    private static List<Event> events = new ArrayList<Event>();
 
     private static Payload buildMessage(String message) {
 	Payload payload = new Payload();
@@ -56,6 +59,16 @@ public class SocketClient {
     	Payload payload = new Payload();
     	payload.setPayloadType(PayloadType.READY);
     	payload.setReady(ready);
+    	return payload;
+    }
+    private static Payload buildCountdown() {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.START_GAME);
+    	return payload;
+    }
+    private static Payload buildReadyRemoval() {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.REMOVE_READY);
     	return payload;
     }
 
@@ -112,35 +125,30 @@ public class SocketClient {
 
 	switch (p.getPayloadType()) {
 	case CONNECT:
-	    if (event != null) {
-		event.onClientConnect(p.getClientName(), p.getMessage());
-	    }
+		sendOnClientConnect(p.getClientName(), p.getMessage());
 	    break;
 	case DISCONNECT:
-	    if (event != null) {
-		event.onClientDisconnect(p.getClientName(), p.getMessage());
-	    }
+		sendOnClientDisconnect(p.getClientName(), p.getMessage());
 	    break;
 	case MESSAGE:
-	    if (event != null) {
-		event.onMessageReceive(p.getClientName(), p.getMessage());
-	    }
+		sendOnMessage(p.getClientName(), p.getMessage());
 	    break;
 	case CLEAR_PLAYERS:
-	    if (event != null) {
-		event.onChangeRoom();
-	    }
+		sendOnChangeRoom();
 	    break;
 	case SET_COUNTDOWN:
-	    event.onSetCountdown(p.getMessage(), p.getNumber());
+	    setCountdown(p.getMessage(), p.getNumber());
 	    break;
 	case GAME_RESULT: 
-		event.onSetResults(p.getDecision());
-		results = p.getDecision();
-		System.out.println("Decisions = " + results);
+		sendOnSetResults(p.getResults());
+		sendOnSetDecision(p.getDecision());
 		break;
 	case READY:
-		event.onReady(p.getClientName(), p.getReady());
+		onReadyTotal(p.getTotalReady());
+		//sendOnReady(p.getClientName(), p.getReady());
+		break;
+	case OTHER_PLAYER:
+		sendOnSetOtherPlayer(p.getOtherClientName());
 		break;
 	default:
 	    log.log(Level.WARNING, "unhandled payload on client" + p);
@@ -150,12 +158,16 @@ public class SocketClient {
     }
 
     // TODO Start public methods here
-    public static void callbackListener(Event e) {
-	event = e;
+    public void registerCallbackListener(Event e) {
+	events.add(e);
 	log.log(Level.INFO, "Attached listener");
     }
+    
+    public void removeCallbackListener(Event e) {
+	events.remove(e);
+    }
 
-    public static boolean connectAndStart(String address, String port) throws IOException {
+    public boolean connectAndStart(String address, String port) throws IOException {
 	if (connect(address, port)) {
 	    return start();
 	}
@@ -190,6 +202,12 @@ public class SocketClient {
     }
     public static void sendReady(boolean ready) {
     sendPayload(buildReady(ready));
+    }
+    public static void startCountdown() {
+    sendPayload(buildCountdown());
+    }
+    public static void sendRemoveReady() {
+    sendPayload(buildReadyRemoval());
     }
 
     public static boolean start() throws IOException {
@@ -255,6 +273,86 @@ public class SocketClient {
     public static String getResults() {
     	return results;
     }
+    private static void setCountdown(String message, int duration) {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onSetCountdown(message, duration);
+	    }
+	}
+    }
+    private static void onReadyTotal(int readyTotal) {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onSetTotalReady(readyTotal);
+	    }
+	}
+    }
+    private static void sendOnClientConnect(String name, String message) {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onClientConnect(name, message);
+	    }
+	}
+    }   
+    private static void sendOnClientDisconnect(String name, String message) {
+    	Iterator<Event> iter = events.iterator();
+    	while (iter.hasNext()) {
+    	    Event e = iter.next();
+    	    if (e != null) {
+    		e.onClientDisconnect(name, message);
+    	    }
+    	}
+        }
+    private static void sendOnMessage(String name, String message) {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onMessageReceive(name, message);
+	    }
+	}
+    }
 
-
+    private static void sendOnChangeRoom() {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onChangeRoom();
+	    }
+	}
+    }
+    private static void sendOnSetResults(String results) {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onSetResults(results);
+	    }
+	}
+    }
+    private static void sendOnSetOtherPlayer(String otherPlayer) {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onSetOtherPlayer(otherPlayer);
+	    }
+	}
+    }
+    private static void sendOnSetDecision(int decision) {
+	Iterator<Event> iter = events.iterator();
+	while (iter.hasNext()) {
+	    Event e = iter.next();
+	    if (e != null) {
+		e.onSetDecision(decision);
+	    }
+	}
+    }
 }

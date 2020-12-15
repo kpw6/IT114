@@ -29,21 +29,29 @@ public class LiveGame {
 		{
 			return 0;
 		}
-		else if(one == 0 && two == 2)
+		else if(one == 0 && two== 2)
+		{
+			return 1;
+		}
+		else if(one == 3)
+		{
+			return 0;
+		}
+		else if(two == 3)
 		{
 			return 1;
 		}
 		return 2;
 		
 	}
-	public static String processResults(int decision) {
+	public static String processResults(int decision, String otherPlayer) {
 		switch (decision) {
 		case 0:
-			return "You have Lost!";
+			return "has have Lost against " + otherPlayer + "!"  ;
 		case 1:
-			return "You have Won!";
+			return "has have Won against " + otherPlayer + "!";
 		case 2:
-			return "You have tied!";
+			return "has tied against " + otherPlayer + "!" ;
 			
 		}
 		return "no decision was made";

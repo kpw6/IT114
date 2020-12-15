@@ -20,6 +20,7 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
     private final static String CREATE_ROOM = "createroom";
     private final static String JOIN_ROOM = "joinroom";
     
+    ServerThread thread;
 
     public Room(String name) {
 	this.name = name;
@@ -177,7 +178,59 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
 	    }
 	}
     }
+    
+    private List<ClientPlayer> readyList = new ArrayList<ClientPlayer>();
+    
+    public int totalyReady() {
+    	return readyList.size();
+    }
+    public void addToReadyList(ClientPlayer cp) {
+    	if(!readyList.contains(cp)) {
+    		readyList.add(cp);
+    		for(ClientPlayer cps : readyList) {
+    			System.out.println(cps.getClientName());
+    		}
+    	}
+    }
+    public void removeFromReadyList(ClientPlayer cp) {
+   		readyList.remove(cp);	
+    }
+    public void sendtotalReady(int total) {
+    	Iterator<ClientPlayer> iter = readyList.iterator();
+    	while (iter.hasNext()) {
+    	    ClientPlayer client = iter.next();
+    	    boolean messageSent = client.getServerThread().sendReadyAndAmount(true, total);
+    	    if (!messageSent) {
+    		iter.remove();
+    	    }
+    	}
+    }
 
+    public ClientPlayer getNextPlayer(ClientPlayer cp) {
+    	for(int x = 0; x < readyList.size(); x++) {
+    		if (readyList.get(x).equals(cp)) {
+    			if (x % 2 == 0) {
+    				return readyList.get(x+1);
+    			}
+    			else if(x % 2 == 1) {
+    				return readyList.get(x-1);
+    			}
+    		}
+    	}
+
+    	return null;
+    }
+    
+    protected void sendCountdown(String message, int duration) {
+    	Iterator<ClientPlayer> iter = readyList.iterator();
+    	while (iter.hasNext()) {
+    		ClientPlayer client = iter.next();
+    	    boolean messageSent = client.client.sendCountdown(message, duration);
+    	    if (!messageSent) {
+    		iter.remove();
+    	    }
+    	}
+        }
     /***
      * Will attempt to migrate any remaining clients to the Lobby room. Will then
      * set references to null and should be eligible for garbage collection
@@ -236,13 +289,6 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
 		// TODO Auto-generated method stub
 		
 	}
-    
-    private void availablePlayerCheck() {
-    	
-    }
-    protected void sendCountdown(String message, int duration) {
-	    
-    }
 
 
 }

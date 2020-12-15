@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +21,8 @@ public class ServerThread extends Thread {
     private String clientName;
     private final static Logger log = Logger.getLogger(ServerThread.class.getName());
     private int decision;
+    private ClientPlayer player = new ClientPlayer(this);
+    private ClientPlayer rival;
 
     public String getClientName() {
 	return clientName;
@@ -133,6 +138,9 @@ public class ServerThread extends Thread {
 	    }
 	    break;
 	case DISCONNECT:
+	    currentRoom.removeFromReadyList(player);
+	    currentRoom.sendtotalReady(currentRoom.totalyReady());
+	    System.out.println("Disconnecting");
 	    isRunning = false;// this will break the while loop in run() and clean everything up
 	    break;
 	case MESSAGE:
@@ -143,13 +151,21 @@ public class ServerThread extends Thread {
 	    // this
 	    break;
 	case CHOICE_GIVEN:
-		decision = LiveGame.gameDecision(p.getChoice(), 1);
-		sendDecision(LiveGame.processResults(decision));
-		currentRoom.sendMessage(this, LiveGame.processResults(decision)); 
+		decision = LiveGame.gameDecision(p.getChoice(), rival.getChoice());
+		sendDecision(LiveGame.processResults(decision, rival.getClientName()), decision);
+		currentRoom.sendMessage(this, LiveGame.processResults(decision, rival.getClientName())); 
 		break;
 	case READY:
-		sendReady(true);
+		currentRoom.addToReadyList(player);
+		currentRoom.sendtotalReady(currentRoom.totalyReady());
 		break;
+	case START_GAME:
+		rival = currentRoom.getNextPlayer(player);
+		sendOtherPlayer(rival.getClientName());
+		currentRoom.sendCountdown("Countdown", 15);
+	case REMOVE_READY:
+	    currentRoom.removeFromReadyList(player);
+	    currentRoom.sendtotalReady(currentRoom.totalyReady());
 	default:
 	    log.log(Level.INFO, "Unhandled payload on server: " + p);
 	    break;
@@ -232,20 +248,24 @@ public class ServerThread extends Thread {
     	payload.setNumber(duration);
     	return sendPayload(payload);
     }
-    protected boolean sendDecision(String decision) {
+    protected boolean sendDecision(String results, int decision) {
     	Payload payload = new Payload();
     	payload.setPayloadType(PayloadType.GAME_RESULT);
+    	payload.setResults(results);
     	payload.setDecision(decision);
     	return sendPayload(payload);
     }
-    int getDecision() {
-    	return decision;
-    }
-    protected boolean sendReady(boolean ready) {
+    protected boolean sendReadyAndAmount(boolean ready, int totalReady) {
     	Payload payload = new Payload();
     	payload.setPayloadType(PayloadType.READY);
     	payload.setReady(ready);
+    	payload.setTotalReady(totalReady);
     	return sendPayload(payload);
     }
-    
+    protected boolean sendOtherPlayer(String p22) {
+    	Payload payload = new Payload();
+    	payload.setPayloadType(PayloadType.OTHER_PLAYER);
+    	payload.setOtherClientName(p22);
+    	return sendPayload(payload);
+    }
 }

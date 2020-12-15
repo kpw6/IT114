@@ -17,9 +17,14 @@ public interface Event {
     
     void onSetCountdown(String message, int duration);
     
-    void onSetResults(String decision);
+    void onSetResults(String results);
     
     void onReady(String clientName, boolean isReady);
-
+    
+    void onSetTotalReady(int totalReady);
+    
+    void onSetOtherPlayer(String rival);
+    
+    void onSetDecision(int decision);
     
 }

@@ -1,5 +1,6 @@
 package server;
 import java.io.Serializable;
+import java.util.List;
 
 public class Payload implements Serializable {
 
@@ -16,6 +17,16 @@ public class Payload implements Serializable {
 
     public String getClientName() {
 	return clientName;
+    }
+    
+    private String otherClientName;
+
+    public void setOtherClientName(String s) {
+	this.otherClientName = s;
+    }
+
+    public String getOtherClientName() {
+	return otherClientName;
     }
 
     private String message;
@@ -66,21 +77,39 @@ public class Payload implements Serializable {
     	return this.choice;
     }
     
-    private String decision;
+    private String results;
     
-    public void setDecision(String decision2) {
-    	this.decision = decision2;
+    public void setResults(String results) {
+    	this.results = results;
     }
-    public String getDecision() {
+    public String getResults() {
+    	return results;
+    }
+    private int decision;
+    
+    public void setDecision(int decision) {
+    	this.decision = decision;
+    }
+    public int getDecision() {
     	return decision;
     }
     
-    boolean isReady = false
-    		;
+    boolean isReady = false;
+    
     public void setReady(boolean isReady) {
     	this.isReady = isReady;
     }
     public boolean getReady() {
     	return isReady;
     }
+    
+    int totalReady;
+    
+    public void setTotalReady(int totalReady) {
+    	this.totalReady = totalReady;
+    }
+    public int getTotalReady() {
+    	return totalReady;
+    }
+    
 }

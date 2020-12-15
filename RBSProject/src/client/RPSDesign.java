@@ -2,22 +2,14 @@ package client;
 
 
 import java.awt.CardLayout;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
-import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-
 import core.BaseRPSDesign;
 import core.Countdown;
 import client.User;
@@ -31,6 +23,17 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	JFrame frame;
 	User user;
 	JPanel game = new JPanel();
+	JPanel waitScreen = new JPanel();
+	JPanel resultScreen = new JPanel();
+	JButton spectate;
+	int totalReady, choice = 3, decision;
+	Countdown timer;
+	String rival;
+	JLabel waitingPlayers = new JLabel("Players ready: " + totalReady + "/2 needed");
+	JLabel countdown = new JLabel("Timer: ");
+	JLabel against = new JLabel("Playing against: " + rival);
+	JLabel result = new JLabel();
+	Boolean waitCreated = false, firstPerson = false, gameCreated = false, resultCreated = false;
 	
 	public RPSDesign() {
 		self = this;
@@ -48,14 +51,13 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
 		    	SocketClient.sendMessage("has joined a game");
-				gamePlayScreen();
-		    	self.next();
+		    	SocketClient.sendReady(true);
 
 			}
 
 		});
 		JButton spectateButton = new JButton("Spectate");
-		startButton.addActionListener(new ActionListener() {
+		spectateButton.addActionListener(new ActionListener() {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
@@ -74,48 +76,51 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	
 	public void gameWaitScreen()
 	{
-		SocketClient.sendReady(true);
-		JPanel panel = new JPanel();
-		JLabel waiting = new JLabel("Waiting for other players to connect");
-		
-		panel.add(waiting);
-		this.add(panel);
+		if(!waitCreated) {
 			
-
-		
+			JLabel waitingMsg = new JLabel("Waiting for other players to connect");
+			JButton startGames = new JButton("Start");
+			
+			waitScreen.add(waitingMsg);
+			waitScreen.add(waitingPlayers);
+			if (firstPerson) {
+				waitScreen.add(startGames);
+			}
+			self.add(waitScreen);
+			startGames.addActionListener(new ActionListener() {
+	
+			    @Override
+			    public void actionPerformed(ActionEvent e) {
+			    	if (totalReady >= 2) {
+			    		SocketClient.startCountdown();
+			    	}
+			    }
+			});
+		}	
 	}
 	
 	public void gamePlayScreen() {	
+	if (!gameCreated) {
 		JButton rockButton = new JButton("Rock");
 		JButton paperButton = new JButton("Paper");
 		JButton scizzorsButton = new JButton("Scizzors");
 		JButton skipButton = new JButton("Skip");
-		JButton menuButton = new JButton("Return to Menu");
-		JLabel scizzors = new JLabel("You chose scizzors");
-		JLabel rock = new JLabel("You chose rock");
-		JLabel paper = new JLabel("You chose paper");
-		JLabel timeOut = new JLabel("Time ran out");
+		JLabel against = new JLabel("Playing against: " + rival);
 
 		game.add(rockButton);
 		game.add(paperButton);
 		game.add(scizzorsButton);
 		game.add(skipButton);
-		game.add(scizzors);
-		game.add(paper);
-		game.add(rock);
-		game.add(timeOut);
-		scizzors.setVisible(false);
-		rock.setVisible(false);
-		paper.setVisible(false);
-		timeOut.setVisible(false);
+		game.add(against);
 		
-		this.add(game);
+		self.add(game);
 		//Scizzors button press
 		scizzorsButton.addActionListener(new ActionListener() {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	self.onChoiceMade(2);
+		    	choice = 2;
+		    	resultsScreen();
 		    	self.next();
 
 			}
@@ -126,7 +131,8 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	onChoiceMade(0);
+		    	choice = 0;
+		    	resultsScreen();
 		    	self.next();
 
 
@@ -138,7 +144,9 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	onChoiceMade(1);
+		    	choice = 1;
+		    	resultsScreen();
+		    	self.next();
 
 			}
 
@@ -153,28 +161,23 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 			}
 
 		});
-		menuButton.addActionListener(new ActionListener() {
-
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-		    	self.gotoMenu();
-
-			}
-
-		}); 
-		Countdown timer = new Countdown("t", 15, (x) -> {
-			self.gotoMenu();
-			this.remove(game);
-		});
+	}
 	}
 	public void spectateScreen() {
 		
 	}
 	
+	public void resultsScreen() {
+		if (!resultCreated) {
+			JLabel waitForResults = new JLabel("Waiting for round to finish");
+			resultScreen.add(waitForResults);
+			self.add(resultScreen);
+		}
+	}
 	
 	
 	 @Override
-	    public void quit() {
+	 public void quit() {
 	 
 	 }
 	 
@@ -187,14 +190,26 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	void gotoMenu() {
 		card.first(self);
 	}
+	void gotoCard(JPanel p) {
+	}
 	public void addResults(String results) {
-		SocketClient.sendMessage(results);
 
 	}
 	
 	
     public void onSetCountdown(String message, int duration) {
-	// TODO Auto-generated method stub
+    	against.setText("Playing against: " + rival);
+    	game.remove(against);
+    	game.add(against);
+        gamePlayScreen();
+        gameCreated = true;
+        self.next();
+    	timer = new Countdown(message, duration, (x) -> {
+    	   SocketClient.sendChoice(choice);
+    	   if(!resultScreen.isShowing()) {
+    		   self.next();
+    	   }
+    	});
     }
 	@Override
 	public void onClientConnect(String clientName, String message) {
@@ -218,7 +233,6 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	}
 	@Override
 	public void onChoiceMade(int Choice) {
-		SocketClient.sendChoice(Choice);
 		
 	}
 	@Override
@@ -259,8 +273,36 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 	@Override
 	public void onSetResults(String results) {
-		log.log(Level.INFO, String.format("%s: %s", results));
-		SocketClient.sendMessage(results);
+		result.setText(results);
+		resultScreen.remove(result);
+		resultScreen.add(result);
+		JButton spectate = new JButton("Spectate");
+		JButton returns = new JButton("Return");
+		if (decision == 0 || decision == 3) {
+			resultScreen.remove(returns);
+	    	resultScreen.add(spectate);
+	    	SocketClient.sendRemoveReady();
+		}
+		else {
+			resultScreen.remove(spectate);
+	    	resultScreen.add(returns);
+		}
+		spectate.addActionListener(new ActionListener() {
+			
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	
+
+		    }
+		});
+		returns.addActionListener(new ActionListener() {
+			
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	
+		    }
+		});
+		
 	}
 
 	@Override
@@ -268,6 +310,40 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void onReady(String clientName, boolean isReady) {
+		
+	}
+
+	@Override
+	public void onSetTotalReady(int totalReady) {
+		this.totalReady = totalReady;
+		waitingPlayers.setText("Players ready: " + totalReady + "/2 needed");
+		waitScreen.remove(waitingPlayers);
+		waitScreen.add(waitingPlayers);
+		if(totalReady == 1) {
+			firstPerson = true;
+		}
+    	gameWaitScreen();
+    	waitCreated = true;
+    	if (!waitScreen.isShowing()){
+    		self.next();
+    	}
+	}
+
+	@Override
+	public void onSetOtherPlayer(String rival) {
+		this.rival = rival;
+		
+	}
+
+	@Override
+	public void onSetDecision(int decision) {
+		this.decision = decision;
+		
+	}
+
 
 
 

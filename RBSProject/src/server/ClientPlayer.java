@@ -4,12 +4,24 @@ import client.Player;
 
 public class ClientPlayer {
 	int choice;
-    public ClientPlayer(ServerThread client, Player player, int choice) {
+    public ServerThread client;
+    
+    public ClientPlayer(ServerThread client) {
 	this.client = client;
-	this.player = player;
-	this.choice = choice;
+    }
+    
+    public void setChoice(int choice) {
+    	this.choice = choice;
+    }
+    
+    public int getChoice() {
+    	return this.choice;
+    }
+    public String getClientName() {
+    	return client.getClientName();
+    }
+    public ServerThread getServerThread() {
+    	return this.client;
     }
 
-    public ServerThread client;
-    public Player player;
 }

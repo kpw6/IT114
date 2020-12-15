@@ -1,9 +1,12 @@
 package core;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JPanel;
+
+import server.ClientPlayer;
 
 public abstract class BaseRPSDesign extends JPanel {
 	private static final long serialVersionUID = 5L;
@@ -85,6 +88,7 @@ public abstract class BaseRPSDesign extends JPanel {
     public abstract void quit();
     
     public abstract void attachListeners();
+
 
 
 }

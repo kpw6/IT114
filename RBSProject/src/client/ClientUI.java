@@ -30,6 +30,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 
 import client.RPSDesign;
+import server.ClientPlayer;
 
 public class ClientUI extends JFrame implements Event {
     /**
@@ -45,6 +46,8 @@ public class ClientUI extends JFrame implements Event {
     Dimension windowSize = Toolkit.getDefaultToolkit().getScreenSize();
     
     RPSDesign design;
+    
+    public static ClientUI Instance;
 
     public ClientUI(String title) {
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -183,6 +186,7 @@ public class ClientUI extends JFrame implements Event {
     design = new RPSDesign();
     design.setPreferredSize(new Dimension((int) (windowSize.width * .6), windowSize.height));
     textArea.getParent().getParent().getParent().add(design, BorderLayout.WEST);
+    SocketClient.INSTANCE.registerCallbackListener(design);
     }
 
     void addClient(String name, int score) {
@@ -252,8 +256,8 @@ public class ClientUI extends JFrame implements Event {
     }
 
     void connect(String host, String port) throws IOException {
-	SocketClient.callbackListener(this);
-	SocketClient.connectAndStart(host, port);
+	SocketClient.INSTANCE.registerCallbackListener(this);
+	SocketClient.INSTANCE.connectAndStart(host, port);
     }
 
     void showUI() {
@@ -354,4 +358,25 @@ public class ClientUI extends JFrame implements Event {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void onReady(String clientName, boolean isReady) {
+		
+	}
+
+	public void onSetTotalReady(int totalReady) {
+		
+	}
+
+	public void onSetOtherPlayer(String rival) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSetDecision(int decision) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

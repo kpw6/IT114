@@ -218,7 +218,7 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
     		}
     	}
 
-    	return null;
+    	return cp;
     }
     
     protected void sendCountdown(String message, int duration) {
@@ -253,6 +253,48 @@ public class Room extends BaseRPSDesign implements AutoCloseable {
 	name = null;
 	// should be eligible for garbage collection now
     }
+	//rock = 0
+	//paper = 1
+	//scizzors = 2
+	//if return 1 player wins, if 0 other wins, 2 is a tie.
+	
+	public int gameDecision(int one, int two)
+	{
+		if(one == 1 && two == 0)
+		{
+			return 1;
+		}
+		else if(one == 1 && two == 2)
+		{
+			return 0;
+		}
+		else if(one == 2 && two == 0)
+		{
+			return 0;
+		}
+		else if(one == 2 && two == 1)
+		{
+			return 1;
+		}
+		else if(one == 0 && two == 1)
+		{
+			return 0;
+		}
+		else if(one == 0 && two== 2)
+		{
+			return 1;
+		}
+		else if(one == 3)
+		{
+			return 0;
+		}
+		else if(two == 3)
+		{
+			return 1;
+		}
+		return 2;
+		
+	}
 
 	@Override
 	public void awake() {

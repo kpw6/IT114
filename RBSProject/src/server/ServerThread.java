@@ -150,8 +150,9 @@ public class ServerThread extends Thread {
 	    // we currently don't need to do anything since the UI/Client won't be sending
 	    // this
 	    break;
-	case CHOICE_GIVEN:
-		decision = LiveGame.gameDecision(p.getChoice(), rival.getChoice());
+	case CHOICE_GIVEN: 
+		player.setChoice(p.getChoice());
+		decision = currentRoom.gameDecision(p.getChoice(), rival.getChoice());
 		sendDecision(LiveGame.processResults(decision, rival.getClientName()), decision);
 		currentRoom.sendMessage(this, LiveGame.processResults(decision, rival.getClientName())); 
 		break;
@@ -161,11 +162,13 @@ public class ServerThread extends Thread {
 		break;
 	case START_GAME:
 		rival = currentRoom.getNextPlayer(player);
-		sendOtherPlayer(rival.getClientName());
+		sendOtherPlayer(currentRoom.getNextPlayer(player).getClientName());
 		currentRoom.sendCountdown("Countdown", 15);
+		break;
 	case REMOVE_READY:
 	    currentRoom.removeFromReadyList(player);
 	    currentRoom.sendtotalReady(currentRoom.totalyReady());
+	    
 	default:
 	    log.log(Level.INFO, "Unhandled payload on server: " + p);
 	    break;

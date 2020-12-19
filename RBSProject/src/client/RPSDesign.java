@@ -25,7 +25,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	JPanel game = new JPanel();
 	JPanel waitScreen = new JPanel();
 	JPanel resultScreen = new JPanel();
-	JButton spectate;
+	JButton spectate = new JButton("Spectate");
 	int totalReady, choice = 3, decision;
 	Countdown timer;
 	String rival;
@@ -33,7 +33,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	JLabel countdown = new JLabel("Timer: ");
 	JLabel against = new JLabel("Playing against: " + rival);
 	JLabel result = new JLabel();
-	Boolean waitCreated = false, firstPerson = false, gameCreated = false, resultCreated = false;
+	Boolean waitCreated = false, firstPerson = false, gameCreated = false, resultCreated = false, specateCreated = false;
 	
 	public RPSDesign() {
 		self = this;
@@ -56,20 +56,19 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 			}
 
 		});
-		JButton spectateButton = new JButton("Spectate");
-		spectateButton.addActionListener(new ActionListener() {
-
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-
-			}
-
-		});
-		panel.add(spectateButton);
+		panel.add(spectate);
 		panel.add(title);
 		panel.add(startButton);
 		self.add(panel);
-		
+		spectate.addActionListener(new ActionListener() {
+			
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	spectateScreen();
+		    	self.next();
+
+		    }
+		});
 		
 		
 	}
@@ -112,7 +111,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		game.add(scizzorsButton);
 		game.add(skipButton);
 		game.add(against);
-		
+		System.out.print("GameScreen");
 		self.add(game);
 		//Scizzors button press
 		scizzorsButton.addActionListener(new ActionListener() {
@@ -156,7 +155,7 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	self.gotoMenu();
+		    	self.next();
 
 			}
 
@@ -164,7 +163,21 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	}
 	}
 	public void spectateScreen() {
-		
+	if (!specateCreated) {
+		JPanel panel = new JPanel();
+		JLabel spectater = new JLabel("You are spectating. Results: --->");
+		JButton menu = new JButton("Menu");
+		panel.add(spectater);
+		panel.add(menu);
+		self.add(panel);
+		menu.addActionListener(new ActionListener() {
+			
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	self.gotoMenu();
+		    }
+		});
+	}
 	}
 	
 	public void resultsScreen() {
@@ -190,26 +203,22 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 	void gotoMenu() {
 		card.first(self);
 	}
-	void gotoCard(JPanel p) {
-	}
-	public void addResults(String results) {
 
-	}
 	
-	
+	@Override
     public void onSetCountdown(String message, int duration) {
     	against.setText("Playing against: " + rival);
     	game.remove(against);
     	game.add(against);
-        gamePlayScreen();
-        gameCreated = true;
-        self.next();
+    	gamePlayScreen();
+    	gameCreated = true;
     	timer = new Countdown(message, duration, (x) -> {
     	   SocketClient.sendChoice(choice);
-    	   if(!resultScreen.isShowing()) {
-    		   self.next();
-    	   }
     	});
+        if(!game.isShowing()) {
+ 		   self.next();
+ 		   System.out.println("goto game");
+ 	   }
     }
 	@Override
 	public void onClientConnect(String clientName, String message) {
@@ -273,14 +282,14 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 
 	@Override
 	public void onSetResults(String results) {
+		System.out.println("error is possible");
 		result.setText(results);
 		resultScreen.remove(result);
 		resultScreen.add(result);
-		JButton spectate = new JButton("Spectate");
 		JButton returns = new JButton("Return");
 		if (decision == 0 || decision == 3) {
 			resultScreen.remove(returns);
-	    	resultScreen.add(spectate);
+	    	resultScreen.add(spectate); 
 	    	SocketClient.sendRemoveReady();
 		}
 		else {
@@ -291,7 +300,8 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 			
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
-		    	
+		    	spectateScreen();
+		    	self.next();
 
 		    }
 		});
@@ -325,8 +335,8 @@ public class RPSDesign extends BaseRPSDesign implements Event {
 		if(totalReady == 1) {
 			firstPerson = true;
 		}
-    	gameWaitScreen();
-    	waitCreated = true;
+		gameWaitScreen();
+		waitCreated = true;
     	if (!waitScreen.isShowing()){
     		self.next();
     	}
